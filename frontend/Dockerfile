@@ -9,7 +9,9 @@ COPY . .
 
 RUN npm run build
 
-EXPOSE 4173
+RUN npm install -g serve
 
-CMD ["npm", "run", "preview", "--", "--host"]
 
+
+EXPOSE 3000
+CMD ["sh", "-c", "vite preview --host --port ${PORT:-3000}"]
