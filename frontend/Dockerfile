@@ -7,11 +7,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+EXPOSE 5173
 
-RUN npm install -g serve
-
-
-
-EXPOSE 3000
-CMD ["sh", "-c", "serve -s dist -l ${PORT:-3000}"]
+ENTRYPOINT ["npm", "run", "dev"]
+CMD ["--", "--host", "0.0.0.0"]

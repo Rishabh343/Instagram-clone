@@ -107,27 +107,43 @@ export const getUserPost = async (req, res) => {
 
 export const likePost = async (req, res) => {
   try {
-    const likeKrneWalaUserKiId = req.id;
+    const userId = req.id;
     const postId = req.params.id;
     const post = await Post.findById(postId);
+
     if (!post) {
       return res.status(404).json({
         message: "Post not found",
         success: false,
       });
     }
-    //like logic started
-    await post.updateOne({
-      $addToSet: { likes: likeKrneWalaUserKiId },
-    });
-    await post.save();
 
-    //implement socket io for real time notification
-    return res.status(200).json({
-      message: "Post liked",
-      success: true,
-      post,
-    });
+    // Check if user already liked the post
+    const isLiked = post.likes.includes(userId);
+
+    if (isLiked) {
+      // Unlike the post
+      await post.updateOne({
+        $pull: { likes: userId },
+      });
+      await post.save();
+      return res.status(200).json({
+        message: "Post unliked",
+        success: true,
+        post,
+      });
+    } else {
+      // Like the post
+      await post.updateOne({
+        $push: { likes: userId },
+      });
+      await post.save();
+      return res.status(200).json({
+        message: "Post liked",
+        success: true,
+        post,
+      });
+    }
   } catch (error) {
     console.error(error);
     return res
@@ -138,22 +154,23 @@ export const likePost = async (req, res) => {
 
 export const dislikePost = async (req, res) => {
   try {
-    const likeKrneWalaUserKiId = req.id;
+    const userId = req.id;
     const postId = req.params.id;
     const post = await Post.findById(postId);
+
     if (!post) {
       return res.status(404).json({
         message: "Post not found",
         success: false,
       });
     }
-    //like logic started
+
+    // Remove like if exists
     await post.updateOne({
-      $pull: { likes: likeKrneWalaUserKiId },
+      $pull: { likes: userId },
     });
     await post.save();
 
-    //implement socket io for real time notification
     return res.status(200).json({
       message: "Post disliked",
       success: true,
@@ -166,6 +183,7 @@ export const dislikePost = async (req, res) => {
       .json({ message: "Internal server error", success: false });
   }
 };
+
 export const addComment = async (req, res) => {
   try {
     const postId = req.params.id;

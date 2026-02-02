@@ -8,7 +8,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import CommentDialog from "./CommentDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import axios from "axios";
+
 import { setPosts, setSelectedPost } from "@/redux/postSlice";
 import { Link } from "react-router-dom";
 import api from "@/api/axios";
@@ -22,7 +22,6 @@ export default function Post({ post }) {
   const [postLike, setPostLike] = useState(post.likes.length);
   const [comment, setComment] = useState(post.comments);
 
-  
   const dispatch = useDispatch();
 
   const changeEventHandler = (e) => {
@@ -32,10 +31,7 @@ export default function Post({ post }) {
   const likeOrDislikeHandler = async () => {
     try {
       const action = liked ? "dislike" : "like";
-      const res = await axios.get(
-        `http://localhost:8000/api/v1/post/${post._id}/${action}`,
-        { withCredentials: true }
-      );
+      const res = await api.post(`/api/v1/post/${post._id}/${action}`, {});
       if (res.data.success) {
         const updatedLikes = liked ? postLike - 1 : postLike + 1;
         setPostLike(updatedLikes);
@@ -49,7 +45,7 @@ export default function Post({ post }) {
                   ? p.likes.filter((id) => id !== user._id)
                   : [...p.likes, user._id],
               }
-            : p
+            : p,
         );
         dispatch(setPosts(updatedPostsData));
         toast.success(res.data.message);
@@ -61,19 +57,12 @@ export default function Post({ post }) {
 
   const commentHandler = async () => {
     try {
-      const res = await api.post(
-        `/api/v1/post/${post._id}/comment`,
-        { text },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const res = await api.post(`/api/v1/post/${post._id}/comment`, { text });
       if (res.data.success) {
         const updatedCommentData = [...comment, res.data.comment];
         setComment(updatedCommentData);
         const updatedPostsData = posts.map((p) =>
-          p._id === post._id ? { ...p, comments: updatedCommentData } : p
+          p._id === post._id ? { ...p, comments: updatedCommentData } : p,
         );
         dispatch(setPosts(updatedPostsData));
         toast.success(res.data.message);
@@ -86,13 +75,10 @@ export default function Post({ post }) {
 
   const deletePostHandler = async () => {
     try {
-      const res = await axios.delete(
-        `http://localhost:8000/api/v1/post/delete/${post._id}`,
-        { withCredentials: true }
-      );
+      const res = await api.delete(`/api/v1/post/delete/${post._id}`);
       if (res.data.success) {
         const updatedPostsData = posts.filter(
-          (postItem) => postItem?._id !== post?._id
+          (postItem) => postItem?._id !== post?._id,
         );
         dispatch(setPosts(updatedPostsData));
         toast.success(res.data.message);
@@ -105,10 +91,7 @@ export default function Post({ post }) {
 
   const bookmarkHandler = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:8000/api/v1/post/${post._id}/bookmark`,
-        { withCredentials: true }
-      );
+      const res = await api.post(`/api/v1/post/${post._id}/bookmark`);
       if (res.data.success) toast.success(res.data.message);
     } catch (error) {
       console.log(error);

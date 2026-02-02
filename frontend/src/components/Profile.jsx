@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button } from "./ui/button";
 import { AtSign, Heart, MessageCircle } from "lucide-react";
 import { Badge } from "./ui/badge";
-import axios from "axios";
 import { setUserProfile } from "@/redux/authSlice";
 import api from "@/api/axios";
 

@@ -1,28 +1,45 @@
-version: "3.8"
-
 services:
   backend:
     build: ./backend
+    container_name: instagram-backend
     ports:
       - "5000:5000"
     env_file:
       - ./backend/.env
     depends_on:
       - mongo
+    networks:
+      - instagram-network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/instagram
 
   frontend:
     build: ./frontend
+    container_name: instagram-frontend
     ports:
-      - "4173:4173"
+      - "5173:5173"
     depends_on:
       - backend
+    networks:
+      - instagram-network
+    environment:
+      # Use localhost so the browser (client) can resolve the backend address.
+      # 'backend' resolves only inside the Docker network; browsers need host-accessible URL.
+      - VITE_API_URL=http://localhost:5000
 
   mongo:
     image: mongo:5
+    container_name: instagram-mongo
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - instagram-network
 
 volumes:
   mongo_data:
+
+networks:
+  instagram-network:
+    driver: bridge

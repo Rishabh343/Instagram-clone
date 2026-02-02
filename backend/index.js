@@ -6,45 +6,51 @@ import connectDB from "./utils/db.js";
 import userRoute from "./routes/user.route.js";
 import postRoute from "./routes/post.route.js";
 import messageRoute from "./routes/message.route.js";
-import path from "path";
 
-dotenv.config({});
+dotenv.config();
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-const __dirname = path.resolve();
-
-app.get("/", (req, res) => {
-  return res.status(200).json({
-    message: "I'm comming from backend",
-    success: true,
-  });
-});
-
+/* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
 app.use(cookieParser());
 app.use(urlencoded({ extended: true }));
 
-const corsOptions = {
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-};
-app.use(cors(corsOptions));
+/* ---------- CORS (Docker safe) ---------- */
+app.use(
+  cors({
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:5173",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://frontend:5173",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
-// yha p apni api ayengi
+/* ---------- ROUTES ---------- */
+app.get("/", (req, res) => {
+  res.json({
+    message: "I'm coming from backend",
+    success: true,
+  });
+});
+
 app.use("/api/v1/user", userRoute);
-//"http://localhost:8000/api/v1/user/register"
 app.use("/api/v1/post", postRoute);
-//"http://localhost:8000/api/v1/post/addPost"
 app.use("/api/v1/message", messageRoute);
-//"http://localhost:8000/api/v1/message/addMessage"
 
+/* ---------- START SERVER ---------- */
 const start = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => console.log(`server listen at ${PORT}`));
+    app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
   } catch (error) {
-    console.error("Failed to start server:", error);
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };

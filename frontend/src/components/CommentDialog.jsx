@@ -6,7 +6,7 @@ import { MoreHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "@/redux/postSlice";
-import axios from "axios";
+import api from "@/api/axios";
 import { toast } from "sonner";
 
 export default function CommentDialog({ open, setOpen }) {
@@ -28,14 +28,9 @@ export default function CommentDialog({ open, setOpen }) {
   };
   const sendMessageHandler = async () => {
     try {
-      const res = await axios.post(
-        `http://localhost:8000/api/v1/post/${selectedPost?._id}/comment`,
-        { text },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const res = await api.post(`/api/v1/post/${selectedPost?._id}/comment`, {
+        text,
+      });
 
       if (res.data.success) {
         const updatedCommentData = [res.data.comment, ...comments];
@@ -44,7 +39,7 @@ export default function CommentDialog({ open, setOpen }) {
         const updatedPostsData = posts.map((p) =>
           p._id === selectedPost._id
             ? { ...p, comments: updatedCommentData }
-            : p
+            : p,
         );
 
         dispatch(setPosts(updatedPostsData));
@@ -58,21 +53,17 @@ export default function CommentDialog({ open, setOpen }) {
 
   const sendReplyHandler = async (commentId) => {
     try {
-      const res = await axios.post(
-        `http://localhost:8000/api/v1/post/comment/${commentId}/reply`,
-        { text: replyText, postId: selectedPost._id },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const res = await api.post(`/api/v1/post/comment/${commentId}/reply`, {
+        text: replyText,
+        postId: selectedPost._id,
+      });
 
       if (res.data.success) {
         // update local state: add reply under the correct comment
         const updatedComments = comments.map((c) =>
           c._id === commentId
             ? { ...c, replies: [res.data.reply, ...(c.replies || [])] }
-            : c
+            : c,
         );
         setComments(updatedComments);
 
